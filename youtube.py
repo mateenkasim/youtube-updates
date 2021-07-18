@@ -1,15 +1,14 @@
-# -*- coding: utf-8 -*-
+'''
+Asks YouTube about the recent activity of a few channels and prints them.
+Author: Mateen Kasim (2021)
 
-# Sample Python code for youtube.channels.list
-# See instructions for running these code samples locally:
-# https://developers.google.com/explorer-help/guides/code_samples#python
+'''
 
 import os
 import settings
 import datetime
 from pprint import pprint
 
-import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import googleapiclient.errors
 
@@ -37,12 +36,6 @@ def main():
 			if item['snippet']['type'] == 'upload':
 				# Print the info! Maybe include thumbnails later?
 				video_id = item['contentDetails']['upload']['videoId']
-
-				# video_request = youtube.videos().list(
-				# 	part='snippet,contentDetails',
-				# 	id=video_id
-				# )
-				# video_response = video_request.execute()
 
 				print(f'New video by {channel_name}: "{item["snippet"]["title"]}"\n\tLink: https://www.youtube.com/watch?v={video_id}\n')
 
