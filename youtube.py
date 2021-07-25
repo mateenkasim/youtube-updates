@@ -120,39 +120,42 @@ def get_credentials():
 	
 
 def get_activity():
-	result = []
-	one_month_ago = (datetime.datetime.now().replace(day=1) - datetime.timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
-	youtube = googleapiclient.discovery.build(
-		settings.API_SERVICE_NAME, settings.API_VERSION, developerKey=settings.YOUTUBE_API_KEY)
+	try:
+		result = []
+		one_month_ago = (datetime.datetime.now().replace(day=1) - datetime.timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+		youtube = googleapiclient.discovery.build(
+			settings.API_SERVICE_NAME, settings.API_VERSION, developerKey=settings.YOUTUBE_API_KEY)
 
-	# For each channel we want to see
-	for channel_name in settings.CHANNELS:
-		# Get the month's activity by the channel
-		channel_activity_request = youtube.activities().list(
-			part='snippet,contentDetails',
-			channelId=settings.CHANNELS[channel_name],
-			publishedAfter=one_month_ago
-		)
-		channel_activity_response = channel_activity_request.execute()
+		# For each channel we want to see
+		for channel_name in settings.CHANNELS:
+			# Get the month's activity by the channel
+			channel_activity_request = youtube.activities().list(
+				part='snippet,contentDetails',
+				channelId=settings.CHANNELS[channel_name],
+				publishedAfter=one_month_ago
+			)
+			channel_activity_response = channel_activity_request.execute()
 
-		# For each item in activity list
-		for item in channel_activity_response['items']:
-			# If the activity was a video upload
-			if item['snippet']['type'] == 'upload':
-				# Save the info
-				video_id = item['contentDetails']['upload']['videoId']
-				date = datetime.datetime.strptime(item["snippet"]["publishedAt"], "%Y-%m-%dT%H:%M:%S%z").strftime("%D")
-				vid = {
-					'channel_name': channel_name, 
-					'date': date, 
-					'title': item["snippet"]["title"], 
-					'video_id': video_id
-					}
-				result.append(vid)
+			# For each item in activity list
+			for item in channel_activity_response['items']:
+				# If the activity was a video upload
+				if item['snippet']['type'] == 'upload':
+					# Save the info
+					video_id = item['contentDetails']['upload']['videoId']
+					date = datetime.datetime.strptime(item["snippet"]["publishedAt"], "%Y-%m-%dT%H:%M:%S%z").strftime("%D")
+					vid = {
+						'channel_name': channel_name, 
+						'date': date, 
+						'title': item["snippet"]["title"], 
+						'video_id': video_id
+						}
+					result.append(vid)
 
-	# Return list of activity info
-	return sorted(result, key=lambda x : x['date'] if 'date' in x else 0)
+		# Return list of activity info
+		return sorted(result, key=lambda x : x['date'] if 'date' in x else 0)
 
+	except Exception as error:
+		print('Problem with YouTube API:', error)
 
 def send_email(creds, activity):
 	msg = MIMEMultipart('alternative')
