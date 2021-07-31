@@ -122,7 +122,10 @@ def get_credentials():
 def get_activity():
 	try:
 		result = []
-		one_month_ago = (datetime.datetime.now().replace(day=1) - datetime.timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+		today = datetime.datetime.today()
+		# Last month calculation accounts for the fact that Jan is month 1, not month 0
+		# i.e. can't do (today.month - 1) % 12
+		last_month_first = datetime.datetime(today.year, (today.month - 2) % 12 + 1, 1).strftime("%Y-%m-%dT%H:%M:%SZ")
 		youtube = googleapiclient.discovery.build(
 			settings.API_SERVICE_NAME, settings.API_VERSION, developerKey=settings.YOUTUBE_API_KEY)
 
@@ -132,7 +135,7 @@ def get_activity():
 			channel_activity_request = youtube.activities().list(
 				part='snippet,contentDetails',
 				channelId=settings.CHANNELS[channel_name],
-				publishedAfter=one_month_ago
+				publishedAfter=last_month_first
 			)
 			channel_activity_response = channel_activity_request.execute()
 
